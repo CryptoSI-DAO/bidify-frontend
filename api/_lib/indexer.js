@@ -15,7 +15,7 @@ export const CHAINS = {
   },
   56: {
     name: "bnb", symbol: "BNB",
-    rpcs: ["https://bsc-dataseed.bnbchain.org", "https://bsc.meowrpc.com", "https://bsc.drpc.org", "https://bsc-dataseed1.defibit.io", "https://bsc-dataseed2.defibit.io"],
+    rpcs: ["https://bsc.meowrpc.com", "https://bsc.drpc.org", "https://bsc-dataseed.bnbchain.org", "https://bsc-dataseed1.defibit.io"],
     addr: "0xf8fE2A29F141eA2E3C12d925d33333A68bF2F0d8",
     deployBlock: 118223374,
   },
@@ -138,6 +138,13 @@ async function getLogs(chainId, from, to, extra = {}) {
         // lagging node: retry the final chunk against head-1
         const retry = { ...filter, toBlock: hex(Math.max(from, end - 1)) };
         out.push(...(await rpc(chainId, "eth_getLogs", [retry])));
+        continue;
+      }
+      // range caps (e.g. BNB dataseed "limit exceeded") → halve until it fits
+      if (/limit exceeded|exceed|range/i.test(msg) && end - start > 64) {
+        const mid = Math.floor((start + end) / 2);
+        out.push(...(await getLogs(chainId, start, mid, extra)));
+        out.push(...(await getLogs(chainId, mid + 1, end, extra)));
         continue;
       }
       if (end - start > 2000) {
