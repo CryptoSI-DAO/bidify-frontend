@@ -9,7 +9,7 @@ export const config = { maxDuration: 60 };
 export const CHAINS = {
   1: {
     name: "ethereum", symbol: "ETH",
-    rpcs: ["https://eth.llamarpc.com", "https://rpc.ankr.com/eth", "https://eth.drpc.org"],
+    rpcs: ["https://eth.drpc.org", "https://rpc.flashbots.net", "https://eth.llamarpc.com"],
     addr: "0xf8fE2A29F141eA2E3C12d925d33333A68bF2F0d8",
     deployBlock: 25840475,
   },
@@ -102,7 +102,17 @@ export async function rpcProbe(chainId) {
 }
 
 async function latestBlock(chainId) {
-  return parseInt(await rpc(chainId, "eth_blockNumber", []), 16);
+  // tolerate lagging nodes: try latest, then latest-1 (some free RPCs sit 1 block behind)
+  try {
+    const hexN = await rpc(chainId, "eth_blockNumber", []);
+    return parseInt(hexN, 16);
+  } catch {
+    /* fallthrough */
+  }
+  // one retry — free RPCs can blip
+  const hexN2 = await rpc(chainId, "eth_blockNumber", []);
+  return parseInt(hexN2, 16);
+  throw new Error(`${CHAINS[chainId].name}: cannot determine head`);
 }
 
 // eth_getLogs with chunking (Base caps ranges at 10k) + halving retry.
@@ -120,6 +130,13 @@ async function getLogs(chainId, from, to, extra = {}) {
     try {
       out.push(...(await rpc(chainId, "eth_getLogs", [filter])));
     } catch (e) {
+      const msg = String(e.message || e);
+      if (/upstream height|less than|too far|ahead of/i.test(msg) && end === to) {
+        // lagging node: retry the final chunk against head-1
+        const retry = { ...filter, toBlock: hex(Math.max(from, end - 1)) };
+        out.push(...(await rpc(chainId, "eth_getLogs", [retry])));
+        continue;
+      }
       if (end - start > 2000) {
         const mid = Math.floor((start + end) / 2);
         out.push(...(await getLogs(chainId, start, mid, extra)));
