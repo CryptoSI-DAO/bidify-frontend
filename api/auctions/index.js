@@ -1,5 +1,8 @@
 // GET /api/auctions         → active auctions for ?chainId=
 // GET /api/auctions/[id]    → single auction ?network=
+
+export const config = { maxDuration: 60 };
+
 import { getAuctionsForChain, getAuctionById, CHAINS } from "../_lib/indexer.js";
 
 const CORS = {

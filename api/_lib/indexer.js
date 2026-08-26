@@ -3,6 +3,9 @@
 // AuctionFinished logs, enriched with live getListing() state and NFT metadata
 // via tokenURI. Works uniformly across all five chains.
 
+
+export const config = { maxDuration: 60 };
+
 export const CHAINS = {
   1: {
     name: "ethereum", symbol: "ETH",
@@ -53,15 +56,22 @@ const SEL_URI_1155 = "0x0e89341c"; // uri(uint256)
 // Multi-RPC failover: try each endpoint in order; on 429/403/5xx/network
 // errors rotate to the next. One full pass retry after a cool-down.
 async function rpcOnce(url, method, params) {
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "User-Agent": "bidify-v2/1.0" },
-    body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
-  });
-  if (!res.ok) throw new Error(`http ${res.status}`);
-  const j = await res.json();
-  if (j.error) throw new Error(j.error.message);
-  return j.result;
+  const ctl = new AbortController();
+  const timer = setTimeout(() => ctl.abort(), 7000);
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      signal: ctl.signal,
+      headers: { "Content-Type": "application/json", "User-Agent": "bidify-v2/1.0" },
+      body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
+    });
+    if (!res.ok) throw new Error(`http ${res.status}`);
+    const j = await res.json();
+    if (j.error) throw new Error(j.error.message);
+    return j.result;
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 async function rpc(chainId, method, params) {
@@ -73,11 +83,22 @@ async function rpc(chainId, method, params) {
         return await rpcOnce(url, method, params);
       } catch (e) {
         lastErr = new Error(`${c.name} ${method}: ${e.message}`);
-        await new Promise((r) => setTimeout(r, 250 * (pass + 1)));
       }
     }
   }
   throw lastErr;
+}
+
+// one-shot liveness probe for health checks: try each RPC once, 7s cap
+export async function rpcProbe(chainId) {
+  const c = CHAINS[chainId];
+  for (const url of c.rpcs) {
+    try {
+      await rpcOnce(url, "eth_blockNumber", []);
+      return "ok";
+    } catch {}
+  }
+  return "error";
 }
 
 async function latestBlock(chainId) {

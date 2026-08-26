@@ -1,6 +1,9 @@
 // GET /api/collection?chainId=&owner=       → owner's active listings (chain-derived)
 // GET /api/collection/[platform]/[id]       → single NFT metadata
 // legacy PUT/POST admincollection → no-op
+
+export const config = { maxDuration: 60 };
+
 import { getAuctionsForChain, fetchNftMetadata, CHAINS } from "../../_lib/indexer.js";
 
 const CORS = {
