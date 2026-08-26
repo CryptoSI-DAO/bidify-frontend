@@ -1,6 +1,6 @@
 // Smoke-test the indexer logic against live chains (no build needed).
 // Run: NODE_PATH=server node test/smoke-indexer.mjs
-import { getAuctionsForChain, getAuctionById, getListingState, CHAINS } from "../server/indexer.js";
+import { getAuctionsForChain, getAuctionById, getListingState, CHAINS } from "../_lib/indexer.js";
 
 const t0 = Date.now();
 for (const cid of Object.keys(CHAINS)) {
