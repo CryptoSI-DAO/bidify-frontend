@@ -1,19 +1,15 @@
 import { FetchWrapper } from "use-nft";
 import { ethers, Contract } from "ethers";
 import axios from 'axios';
-import { baseUrl } from "./config";
-var request = require("request").defaults({ encoding: null });
+import { baseUrl, URLS } from "./config";
+
+// use-nft needs an ethers provider; route through our keyless public RPCs.
+const defaultProvider = () => new ethers.providers.JsonRpcProvider(URLS[1]);
 
 export const getNfts = async (platform, token) => {
-  let provider;
-  provider = new ethers.providers.InfuraProvider(
-    "mainnet",
-    "0c8149f8e63b4b818d441dd7f74ab618"
-  );
-
   const ethersConfig = {
     ethers: { Contract },
-    provider: provider,
+    provider: defaultProvider(),
   };
   const fetcher = ["ethers", ethersConfig];
 
@@ -38,13 +34,14 @@ export const getNfts = async (platform, token) => {
 };
 
 export const getBase64ImageBuffer = (imgUrl) => {
-  if(imgUrl.includes('storageapi.fleek.co')) return Promise.reject("already uploaded")
+  if (imgUrl.includes('storageapi.fleek.co')) return Promise.reject("already uploaded");
+  const request = require("request").defaults({ encoding: null });
   return new Promise(
     (resolve, reject) => {
       request.get(
         imgUrl,
         (error, response, body) => {
-          if (error) reject('Something went wrong!!!')
+          if (error) reject('Something went wrong!!!');
           if (!error && response.statusCode === 200) {
             const data =
               "data:" +
@@ -53,7 +50,7 @@ export const getBase64ImageBuffer = (imgUrl) => {
               Buffer.from(body).toString("base64");
             resolve(Buffer.from(data.replace(/^data:image\/(png|jpg|gif|jpeg);base64,/, ""), 'base64'));
           }
-          else reject('Something went wrong!!!')
+          else reject('Something went wrong!!!');
         }
       );
     });

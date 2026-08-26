@@ -963,22 +963,10 @@ export const getBalance = async (account, chainId) => {
 
 export const getFetchValues = async (val, chainId, account) => {
   let provider;
-  switch (chainId) {
-    case 1:
-      provider = new ethers.providers.InfuraProvider(
-        "mainnet",
-        "0c8149f8e63b4b818d441dd7f74ab618"
-      );
-      break;
-    case 5:
-      provider = new ethers.providers.InfuraProvider(
-        "goerli",
-        "0c8149f8e63b4b818d441dd7f74ab618"
-      );
-      break;
-    default:
-      if (!URLS[chainId]) console.log("select valid chain");
-      else provider = new ethers.providers.JsonRpcProvider(URLS[chainId]);
+  if (!URLS[chainId]) {
+    console.log("select valid chain");
+  } else {
+    provider = new ethers.providers.JsonRpcProvider(URLS[chainId]);
   }
 
   const ethersConfig = {

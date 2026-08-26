@@ -1,254 +1,177 @@
-import logo_avax from "../assets/logo/bidifylogo_avax.png";
-import logo_matic from "../assets/logo/bidifylogo_matic.png";
-import logo_bnb from "../assets/logo/bidifylogo_bsc.png";
-import logo_optimism from "../assets/logo/bidifylogo_op.png";
-import logo_arbitrum from "../assets/logo/bidifylogo_arbitrum.png";
-import logo_ink from "../assets/logo/bidifylogo_ink.png";
-import logo_blast from "../assets/logo/bidifylogo_blast.png";
-import logo_linea from "../assets/logo/bidifylogo_linea.png";
+// Bidify V2 — chain configuration
+// Live contracts verified 2026-08-26: owner 0x0B17…158 on all chains.
+// ETH/Base/BNB/Arbitrum share deterministic address 0xf8fE…F0d8;
+// Robinhood Chain differs (nonce offset at deploy — see bidify-contracts README).
+
+import logo_eth from "../assets/logo/bidifylogo_eth.png";
 import logo_base from "../assets/logo/bidifylogo_base.png";
-import logo_scroll from "../assets/logo/bidifylogo_scroll.png";
-import logo_mantle from "../assets/logo/bidifylogo_mantle.png";
+import logo_bnb from "../assets/logo/bidifylogo_bsc.png";
+import logo_arbitrum from "../assets/logo/bidifylogo_arbitrum.png";
+import logo_robinhood from "../assets/logo/bidifylogo_robinhood.png";
 
-import avaxLoader from "../assets/icons/loader_avax.gif";
-import maticLoader from "../assets/icons/loader_polygon.gif";
-import bnbLoader from "../assets/icons/loader_bsc.gif";
-import arbitrumLoader from "../assets/icons/loader_arbitrum.gif";
-import optimismLoader from "../assets/icons/loader_op.gif";
-import inkLoader from "../assets/icons/loader_ink.gif";
-import blastLoader from "../assets/icons/loader_blast.gif";
-import lineaLoader from "../assets/icons/loader_linea.gif";
-import baseLoader from "../assets/icons/loader_base.gif";
-import scrollLoader from "../assets/icons/loader_scroll.gif";
-import mantleLoader from "../assets/icons/loader_mantle.gif";
+// ─── Image gateway ───────────────────────────────────────────────
+// Swap-in point for the Cloudflare image worker. Set REACT_APP_IMAGE_WORKER
+// to a worker base URL (no trailing slash) and every NFT image + metadata
+// fetch routes through it:
+//   https://<worker>/img?url=<encoded>   for images
+//   https://<worker>/meta?url=<encoded>  for tokenURI/metadata JSON
+// Leave unset to use public IPFS/HTTP gateways directly.
+export const IMAGE_WORKER = process.env.REACT_APP_IMAGE_WORKER || "";
 
-export const baseUrl = process.env.REACT_APP_API_URI;
-// export const baseUrl = "http://localhost:5000/api";
+export function imageUrl(raw) {
+  if (!raw) return raw;
+  if (IMAGE_WORKER) {
+    return `${IMAGE_WORKER}/img?url=${encodeURIComponent(raw)}`;
+  }
+  return normalizeUri(raw);
+}
+
+export function normalizeUri(raw) {
+  if (!raw) return raw;
+  let u = raw.trim();
+  if (u.startsWith("ipfs://")) {
+    return `https://ipfs.io/ipfs/${u.slice(7).replace(/^ipfs\//, "")}`;
+  }
+  if (u.startsWith("ar://")) {
+    return `https://arweave.net/${u.slice(5)}`;
+  }
+  return u;
+}
+
+// ─── API base ────────────────────────────────────────────────────
+export const baseUrl = "/api";
+
+// ─── Networks ────────────────────────────────────────────────────
 export const NetworkId = {
-  MATIC: 137,
-  AVAX: 43114,
+  ETH: 1,
   BNB: 56,
   ARBITRUM: 42161,
-  OPTIMISM: 10,
   BASE: 8453,
-  LINEA: 59144,
-  BLAST: 81457,
-  SCROLL: 534352,
-  MANTLE: 5000,
-  INK: 763373,
+  ROBINHOOD: 4663,
 };
+
 export const NeworkOrder = [
-  NetworkId.MATIC,
+  NetworkId.ETH,
   NetworkId.BNB,
-  NetworkId.AVAX,
   NetworkId.ARBITRUM,
-  NetworkId.OPTIMISM,
   NetworkId.BASE,
-  NetworkId.LINEA,
-  NetworkId.SCROLL,
-  NetworkId.BLAST,
-  NetworkId.MANTLE,
-  NetworkId.INK,
+  NetworkId.ROBINHOOD,
 ];
+
 export const NetworkData = {
-  [NetworkId.MATIC]: {
-    symbol: "MATIC",
-    id: "137",
-    name: "POLYGON",
-    color: "#8247e5",
-    logo: logo_matic,
-    loader: maticLoader,
-    nftscan: "https://polygonapi.nftscan.com/api/v2",
+  [NetworkId.ETH]: {
+    symbol: "ETH",
+    id: "1",
+    name: "ETHEREUM",
+    color: "#627eea",
+    logo: logo_eth,
+    explorer: "https://etherscan.io",
   },
   [NetworkId.BNB]: {
     symbol: "BNB",
     id: "56",
-    name: "BINANCE SMART CHAIN",
+    name: "BNB CHAIN",
     color: "#FCD535",
     logo: logo_bnb,
-    loader: bnbLoader,
-    nftscan: "https://bnbapi.nftscan.com/api/v2",
-  },
-  [NetworkId.AVAX]: {
-    symbol: "AVAX",
-    id: "43114",
-    name: "AVALANCHE",
-    color: "#de4437",
-    logo: logo_avax,
-    loader: avaxLoader,
-    nftscan: "https://avaxapi.nftscan.com/api/v2",
+    explorer: "https://bscscan.com",
   },
   [NetworkId.ARBITRUM]: {
     symbol: "ETH",
     id: "42161",
     name: "ARBITRUM",
-    color: "#34d399",
+    color: "#12aaff",
     logo: logo_arbitrum,
-    loader: arbitrumLoader,
-    nftscan: "https://arbitrumapi.nftscan.com/api/v2",
-  },
-  [NetworkId.OPTIMISM]: {
-    symbol: "ETH",
-    id: "10",
-    name: "OPTIMISM",
-    color: "#34d399",
-    logo: logo_optimism,
-    loader: optimismLoader,
-    nftscan: "https://optimismapi.nftscan.com/api/v2",
-  },
-  [NetworkId.INK]: {
-    symbol: "ETH",
-    id: "763373",
-    name: "INKSEPOLIA",
-    color: "#6c54bc",
-    logo: logo_ink,
-    loader: inkLoader,
+    explorer: "https://arbiscan.io",
   },
   [NetworkId.BASE]: {
     symbol: "ETH",
     id: "8453",
     name: "BASE",
-    color: "#6c54bc",
+    color: "#0052ff",
     logo: logo_base,
-    loader: baseLoader,
-    nftscan: "https://baseapi.nftscan.com/api/v2",
+    explorer: "https://basescan.org",
   },
-  [NetworkId.LINEA]: {
+  [NetworkId.ROBINHOOD]: {
     symbol: "ETH",
-    id: "59144",
-    name: "LINEA",
-    color: "#6c54bc",
-    logo: logo_linea,
-    loader: lineaLoader,
-    nftscan: "https://lineaapi.nftscan.com/api/v2",
-  },
-  [NetworkId.SCROLL]: {
-    symbol: "ETH",
-    id: "534352",
-    name: "SCROLL",
-    color: "#6c54bc",
-    logo: logo_scroll,
-    loader: scrollLoader,
-    nftscan: "https://scrollapi.nftscan.com/api/v2",
-  },
-  [NetworkId.MANTLE]: {
-    symbol: "MNT",
-    id: "5000",
-    name: "MANTLE",
-    color: "#6c54bc",
-    logo: logo_mantle,
-    loader: mantleLoader,
-    nftscan: "https://mantleapi.nftscan.com/api/v2",
-  },
-  [NetworkId.BLAST]: {
-    symbol: "ETH",
-    id: "81457",
-    name: "BLAST",
-    color: "#6c54bc",
-    logo: logo_blast,
-    loader: blastLoader,
-    nftscan: "https://blastapi.nftscan.com/api/v2",
+    id: "4663",
+    name: "ROBINHOOD CHAIN",
+    color: "#00c805",
+    logo: logo_robinhood,
+    explorer: "https://robinhoodchain.blockscout.com",
   },
 };
+
 export const getSymbol = (chainId) => {
-  if (chainId) return NetworkData[chainId].symbol;
-  else return "N/A";
+  const net = NetworkData[Number(chainId)];
+  return net ? net.symbol : "ETH";
 };
+
 export const supportedChainIds = [
-  NetworkId.MATIC,
+  NetworkId.ETH,
   NetworkId.BNB,
-  NetworkId.AVAX,
   NetworkId.ARBITRUM,
-  NetworkId.OPTIMISM,
   NetworkId.BASE,
-  NetworkId.LINEA,
-  NetworkId.SCROLL,
-  NetworkId.MANTLE,
-  NetworkId.BLAST,
-  NetworkId.INK,
+  NetworkId.ROBINHOOD,
 ];
-export const getLogUrl = {
-  [NetworkId.MATIC]:
-    "https://api.polygonscan.com/api?module=logs&action=getLogs",
-  [NetworkId.AVAX]: "https://api.snowtrace.io/api?module=logs&action=getLogs",
-  [NetworkId.BNB]: "https://api.bscscan.com/api?module=logs&action=getLogs",
-  [NetworkId.ARBITRUM]:
-    "https://api.arbiscan.io/api?module=logs&action=getLogs",
-  [NetworkId.OPTIMISM]:
-    "https://api-optimistic.etherscan.io/api?module=logs&action=getLogs",
-  [NetworkId.BASE]: "https://api.basescan.org/api?module=logs&action=getLogs",
-  [NetworkId.LINEA]:
-    "https://api.lineascan.build/api?module=logs&action=getLogs",
-  [NetworkId.SCROLL]:
-    "https://api.scrollscan.com/api?module=logs&action=getLogs",
-  [NetworkId.MANTLE]:
-    "https://api.mantlescan.xyz/api?module=logs&action=getLogs",
-  [NetworkId.BLAST]: "https://api.blastscan.io/api?module=logs&action=getLogs",
-  [NetworkId.INK]:
-    "https://explorer-sepolia.inkonchain.com/api?module=logs&action=getLogs",
-};
-export const snowApi = {
-  [NetworkId.MATIC]: "FSBGFUSYSAIF8XQKES9Z716K9MQUPCJSCP",
-  [NetworkId.BNB]: "3IPW76GB2KV6A2EIJS5PR8KJTYJUGPKDBU",
-  [NetworkId.ARBITRUM]: "9G9UAENP3D2P4Z4FBI9ZS9JRDFBUT5AIR6",
-  [NetworkId.OPTIMISM]: "5WM5GFAA3AX7WHUK2ZGEYN4GAVN5873JDX",
-  [NetworkId.BASE]: "51GJ9QY6S2UUXUDC7N5RNZC49I8MAQDPWP",
-  [NetworkId.LINEA]: "N9CX2JVRZ6UF9HHSW85AXZQ7PVF5XSJNYF",
-  [NetworkId.SCROLL]: "BJQC74FDJNDV5XG6K7XCZNB77G3Y3ZR6Y4",
-  [NetworkId.MANTLE]: "N4DKJBRKKKPGJA2FTPG8QD4XPXNP8PW898",
-  [NetworkId.BLAST]: "A1XJS3MFZX64DIFE98BHUDU1CDT4W8AUSW",
-  [NetworkId.AVAX]: "N9CX2JVRZ6UF9HHSW85AXZQ7PVF5XSJNYF",
-  [NetworkId.INK]: "3IPW76GB2KV6A2EIJS5PR8KJTYJUGPKDBU",
-};
-export const EXPLORER = {
-  [NetworkId.MATIC]: "https://polygonscan.com",
-  [NetworkId.BNB]: "https://bscscan.com",
-  [NetworkId.AVAX]: "https://snowtrace.io",
-  [NetworkId.ARBITRUM]: "https://arbiscan.io",
-  [NetworkId.OPTIMISM]: "https://optimistic.etherscan.io",
-  [NetworkId.BASE]: "https://basescan.org",
-  [NetworkId.LINEA]: "https://lineascan.build",
-  [NetworkId.SCROLL]: "https://scrollscan.com",
-  [NetworkId.MANTLE]: "https://mantlescan.xyz",
-  [NetworkId.BLAST]: "https://blastscan.io",
-  [NetworkId.INK]: "https://explorer-sepolia.inkonchain.com",
-};
 
+export const EXPLORER = Object.fromEntries(
+  Object.entries(NetworkData).map(([k, v]) => [k, v.explorer])
+);
+
+// Public JSON-RPC endpoints (no API keys).
 export const URLS = {
-  [NetworkId.AVAX]: "https://api.avax.network/ext/bc/C/rpc",
-  [NetworkId.MATIC]: "https://polygon-rpc.com",
-  [NetworkId.BNB]: "https://bsc-dataseed.binance.org",
-  [NetworkId.OPTIMISM]: "https://mainnet.optimism.io",
-  [NetworkId.ARBITRUM]: "https://arb1.arbitrum.io/rpc",
-  [NetworkId.BASE]: "https://mainnet.base.org",
-  [NetworkId.SCROLL]:
-    "https://scroll-mainnet.infura.io/v3/208cb2f7413042f389a884515ae9e69d",
-  [NetworkId.MANTLE]: "https://rpc.mantle.xyz",
-  [NetworkId.LINEA]:
-    "https://linea-mainnet.infura.io/v3/208cb2f7413042f389a884515ae9e69d",
-  [NetworkId.BLAST]: "https://rpc.blast.io",
-
-  [NetworkId.INK]: "https://rpc-qnd-sepolia.inkonchain.com",
+  [NetworkId.ETH]: "https://ethereum-rpc.publicnode.com",
+  [NetworkId.BNB]: "https://bsc-dataseed.bnbchain.org",
+  [NetworkId.ARBITRUM]: "https://arbitrum-one-rpc.publicnode.com",
+  [NetworkId.BASE]: "https://base-rpc.publicnode.com",
+  [NetworkId.ROBINHOOD]: "https://rpc.mainnet.chain.robinhood.com",
 };
 
+// ─── Bidify V2 contract ──────────────────────────────────────────
 export const BIDIFY = {
   address: {
-    [NetworkId.AVAX]: "0x6Caf1f39426a94fbc62A166B4b5ed18b4A189629",
-    [NetworkId.MATIC]: "0x3aF036B46c2262D4fCdfBd12c7163584C213fa05",
-    [NetworkId.BNB]: "0x3aF036B46c2262D4fCdfBd12c7163584C213fa05",
-    [NetworkId.OPTIMISM]: "0x6Caf1f39426a94fbc62A166B4b5ed18b4A189629",
-    [NetworkId.ARBITRUM]: "0x6Caf1f39426a94fbc62A166B4b5ed18b4A189629",
-    [NetworkId.BASE]: "0x6Caf1f39426a94fbc62A166B4b5ed18b4A189629",
-    [NetworkId.LINEA]: "0x6Caf1f39426a94fbc62A166B4b5ed18b4A189629",
-    [NetworkId.SCROLL]: "0x3aF036B46c2262D4fCdfBd12c7163584C213fa05",
-    [NetworkId.MANTLE]: "0x6Caf1f39426a94fbc62A166B4b5ed18b4A189629",
-    [NetworkId.BLAST]: "0x6Caf1f39426a94fbc62A166B4b5ed18b4A189629",
+    [NetworkId.ETH]: "0xf8fE2A29F141eA2E3C12d925d33333A68bF2F0d8",
+    [NetworkId.BNB]: "0xf8fE2A29F141eA2E3C12d925d33333A68bF2F0d8",
+    [NetworkId.ARBITRUM]: "0xf8fE2A29F141eA2E3C12d925d33333A68bF2F0d8",
+    [NetworkId.BASE]: "0xf8fE2A29F141eA2E3C12d925d33333A68bF2F0d8",
+    [NetworkId.ROBINHOOD]: "0x0cF1d5B39C0d8612Cf8057A5761Fb1A875E8FDa2",
+  },
+  abi: [{"type":"constructor","inputs":[{"name":"_feeRecipient","type":"address","internalType":"address"}],"stateMutability":"nonpayable"},{"type":"fallback","stateMutability":"payable"},{"type":"receive","stateMutability":"payable"},{"type":"function","name":"bid","inputs":[{"name":"id","type":"uint64","internalType":"uint64"},{"name":"referrer","type":"address","internalType":"address"},{"name":"amount","type":"uint256","internalType":"uint256"}],"outputs":[],"stateMutability":"payable"},{"type":"function","name":"feeRecipient","inputs":[],"outputs":[{"name":"","type":"address","internalType":"address"}],"stateMutability":"view"},{"type":"function","name":"finish","inputs":[{"name":"id","type":"uint64","internalType":"uint64"}],"outputs":[],"stateMutability":"nonpayable"},{"type":"function","name":"getListing","inputs":[{"name":"id","type":"uint256","internalType":"uint256"}],"outputs":[{"name":"","type":"tuple","internalType":"struct Bidify.Listing","components":[{"name":"creator","type":"address","internalType":"address"},{"name":"currency","type":"address","internalType":"address"},{"name":"platform","type":"address","internalType":"address"},{"name":"token","type":"uint256","internalType":"uint256"},{"name":"price","type":"uint256","internalType":"uint256"},{"name":"endingPrice","type":"uint256","internalType":"uint256"},{"name":"referrer","type":"address","internalType":"address"},{"name":"lister","type":"address","internalType":"address"},{"name":"highBidder","type":"address","internalType":"address"},{"name":"endTime","type":"uint256","internalType":"uint256"},{"name":"paidOut","type":"bool","internalType":"bool"},{"name":"isERC721","type":"bool","internalType":"bool"}]}],"stateMutability":"view"},{"type":"function","name":"getNextBid","inputs":[{"name":"id","type":"uint64","internalType":"uint64"}],"outputs":[{"name":"","type":"uint256","internalType":"uint256"}],"stateMutability":"view"},{"type":"function","name":"getNextListingId","inputs":[],"outputs":[{"name":"","type":"uint64","internalType":"uint64"}],"stateMutability":"view"},{"type":"function","name":"getPriceUnit","inputs":[{"name":"currency","type":"address","internalType":"address"}],"outputs":[{"name":"","type":"uint256","internalType":"uint256"}],"stateMutability":"view"},{"type":"function","name":"list","inputs":[{"name":"currency","type":"address","internalType":"address"},{"name":"platform","type":"address","internalType":"address"},{"name":"token","type":"uint256","internalType":"uint256"},{"name":"price","type":"uint256","internalType":"uint256"},{"name":"endingPrice","type":"uint256","internalType":"uint256"},{"name":"timeInDays","type":"uint8","internalType":"uint8"},{"name":"isERC721","type":"bool","internalType":"bool"},{"name":"lister","type":"address","internalType":"address"}],"outputs":[{"name":"","type":"uint256","internalType":"uint256"}],"stateMutability":"nonpayable"},{"type":"function","name":"onERC1155BatchReceived","inputs":[{"name":"","type":"address","internalType":"address"},{"name":"","type":"address","internalType":"address"},{"name":"","type":"uint256[]","internalType":"uint256[]"},{"name":"","type":"uint256[]","internalType":"uint256[]"},{"name":"","type":"bytes","internalType":"bytes"}],"outputs":[{"name":"","type":"bytes4","internalType":"bytes4"}],"stateMutability":"nonpayable"},{"type":"function","name":"onERC1155Received","inputs":[{"name":"operator","type":"address","internalType":"address"},{"name":"","type":"address","internalType":"address"},{"name":"tokenId","type":"uint256","internalType":"uint256"},{"name":"","type":"bytes","internalType":"bytes"}],"outputs":[{"name":"","type":"bytes4","internalType":"bytes4"}],"stateMutability":"nonpayable"},{"type":"function","name":"onERC1155Received","inputs":[{"name":"","type":"address","internalType":"address"},{"name":"","type":"address","internalType":"address"},{"name":"","type":"uint256","internalType":"uint256"},{"name":"","type":"uint256","internalType":"uint256"},{"name":"","type":"bytes","internalType":"bytes"}],"outputs":[{"name":"","type":"bytes4","internalType":"bytes4"}],"stateMutability":"nonpayable"},{"type":"function","name":"onERC721Received","inputs":[{"name":"operator","type":"address","internalType":"address"},{"name":"","type":"address","internalType":"address"},{"name":"tokenId","type":"uint256","internalType":"uint256"},{"name":"","type":"bytes","internalType":"bytes"}],"outputs":[{"name":"","type":"bytes4","internalType":"bytes4"}],"stateMutability":"nonpayable"},{"type":"function","name":"owner","inputs":[],"outputs":[{"name":"","type":"address","internalType":"address"}],"stateMutability":"view"},{"type":"function","name":"renounceOwnership","inputs":[],"outputs":[],"stateMutability":"nonpayable"},{"type":"function","name":"supportsInterface","inputs":[{"name":"interfaceId","type":"bytes4","internalType":"bytes4"}],"outputs":[{"name":"","type":"bool","internalType":"bool"}],"stateMutability":"view"},{"type":"function","name":"transferOwnership","inputs":[{"name":"newOwner","type":"address","internalType":"address"}],"outputs":[],"stateMutability":"nonpayable"},{"type":"event","name":"AuctionExtended","inputs":[{"name":"id","type":"uint64","indexed":true,"internalType":"uint64"},{"name":"time","type":"uint256","indexed":false,"internalType":"uint256"}],"anonymous":false},{"type":"event","name":"AuctionFinished","inputs":[{"name":"id","type":"uint64","indexed":true,"internalType":"uint64"},{"name":"nftRecipient","type":"address","indexed":true,"internalType":"address"},{"name":"price","type":"uint256","indexed":false,"internalType":"uint256"}],"anonymous":false},{"type":"event","name":"Bid","inputs":[{"name":"id","type":"uint64","indexed":true,"internalType":"uint64"},{"name":"bidder","type":"address","indexed":true,"internalType":"address"},{"name":"price","type":"uint256","indexed":false,"internalType":"uint256"},{"name":"referrer","type":"address","indexed":false,"internalType":"address"}],"anonymous":false},{"type":"event","name":"FeeRecipientChanged","inputs":[{"name":"oldRecipient","type":"address","indexed":true,"internalType":"address"},{"name":"newRecipient","type":"address","indexed":true,"internalType":"address"}],"anonymous":false},{"type":"event","name":"ListingCreated","inputs":[{"name":"id","type":"uint64","indexed":true,"internalType":"uint64"},{"name":"creator","type":"address","indexed":true,"internalType":"address"},{"name":"currency","type":"address","indexed":false,"internalType":"address"},{"name":"platform","type":"address","indexed":true,"internalType":"address"},{"name":"token","type":"uint256","indexed":false,"internalType":"uint256"},{"name":"price","type":"uint256","indexed":false,"internalType":"uint256"},{"name":"endingPrice","type":"uint256","indexed":false,"internalType":"uint256"},{"name":"timeInDays","type":"uint8","indexed":false,"internalType":"uint8"},{"name":"lister","type":"address","indexed":false,"internalType":"address"}],"anonymous":false},{"type":"event","name":"OwnershipTransferred","inputs":[{"name":"previousOwner","type":"address","indexed":true,"internalType":"address"},{"name":"newOwner","type":"address","indexed":true,"internalType":"address"}],"anonymous":false},{"type":"error","name":"OwnableInvalidOwner","inputs":[{"name":"owner","type":"address","internalType":"address"}]},{"type":"error","name":"OwnableUnauthorizedAccount","inputs":[{"name":"account","type":"address","internalType":"address"}]},{"type":"error","name":"ReentrancyGuardReentrantCall","inputs":[]},{"type":"error","name":"SafeERC20FailedOperation","inputs":[{"name":"token","type":"address","internalType":"address"}]}],
+};
 
-    [NetworkId.INK]: "0x0288EE0a9F900B6E0cd5522907548f3DA0cdace9",
+// Legacy exports kept for unmodified consumers.
+export const snowApi = {};
+export const getLogUrl = {};
+
+
+// ERC20 ABI (currency introspection) — from original Robbie config
+export const BIT = {
+  //WETH
+  address: {
+    [NetworkId.EGEM]: "0xE5fca20e55811D461800A853f444FBC6f5B72BEa",
   },
   abi: [
     {
-      inputs: [],
+      inputs: [
+        {
+          internalType: "uint256",
+          name: "amount",
+          type: "uint256",
+        },
+      ],
+      name: "_mint",
+      outputs: [],
+      stateMutability: "nonpayable",
+      type: "function",
+    },
+    {
+      inputs: [
+        {
+          internalType: "uint8",
+          name: "decimals_",
+          type: "uint8",
+        },
+      ],
       stateMutability: "nonpayable",
       type: "constructor",
     },
@@ -257,170 +180,31 @@ export const BIDIFY = {
       inputs: [
         {
           indexed: true,
-          internalType: "uint64",
-          name: "id",
-          type: "uint64",
+          internalType: "address",
+          name: "owner",
+          type: "address",
+        },
+        {
+          indexed: true,
+          internalType: "address",
+          name: "spender",
+          type: "address",
         },
         {
           indexed: false,
           internalType: "uint256",
-          name: "time",
+          name: "value",
           type: "uint256",
         },
       ],
-      name: "AuctionExtended",
+      name: "Approval",
       type: "event",
-    },
-    {
-      anonymous: false,
-      inputs: [
-        {
-          indexed: true,
-          internalType: "uint64",
-          name: "id",
-          type: "uint64",
-        },
-        {
-          indexed: true,
-          internalType: "address",
-          name: "nftRecipient",
-          type: "address",
-        },
-        {
-          indexed: false,
-          internalType: "uint256",
-          name: "price",
-          type: "uint256",
-        },
-      ],
-      name: "AuctionFinished",
-      type: "event",
-    },
-    {
-      anonymous: false,
-      inputs: [
-        {
-          indexed: true,
-          internalType: "uint64",
-          name: "id",
-          type: "uint64",
-        },
-        {
-          indexed: true,
-          internalType: "address",
-          name: "bidder",
-          type: "address",
-        },
-        {
-          indexed: false,
-          internalType: "uint256",
-          name: "price",
-          type: "uint256",
-        },
-        {
-          indexed: false,
-          internalType: "address",
-          name: "referrer",
-          type: "address",
-        },
-      ],
-      name: "Bid",
-      type: "event",
-    },
-    {
-      anonymous: false,
-      inputs: [
-        {
-          indexed: true,
-          internalType: "uint64",
-          name: "id",
-          type: "uint64",
-        },
-        {
-          indexed: true,
-          internalType: "address",
-          name: "creator",
-          type: "address",
-        },
-        {
-          indexed: false,
-          internalType: "address",
-          name: "currency",
-          type: "address",
-        },
-        {
-          indexed: true,
-          internalType: "address",
-          name: "platform",
-          type: "address",
-        },
-        {
-          indexed: false,
-          internalType: "uint256",
-          name: "token",
-          type: "uint256",
-        },
-        {
-          indexed: false,
-          internalType: "uint256",
-          name: "price",
-          type: "uint256",
-        },
-        {
-          indexed: false,
-          internalType: "uint256",
-          name: "endingPrice",
-          type: "uint256",
-        },
-        {
-          indexed: false,
-          internalType: "uint8",
-          name: "timeInDays",
-          type: "uint8",
-        },
-        {
-          indexed: false,
-          internalType: "address",
-          name: "lister",
-          type: "address",
-        },
-      ],
-      name: "ListingCreated",
-      type: "event",
-    },
-    {
-      anonymous: false,
-      inputs: [
-        {
-          indexed: true,
-          internalType: "address",
-          name: "previousOwner",
-          type: "address",
-        },
-        {
-          indexed: true,
-          internalType: "address",
-          name: "newOwner",
-          type: "address",
-        },
-      ],
-      name: "OwnershipTransferred",
-      type: "event",
-    },
-    {
-      stateMutability: "payable",
-      type: "fallback",
     },
     {
       inputs: [
         {
-          internalType: "uint64",
-          name: "id",
-          type: "uint64",
-        },
-        {
           internalType: "address",
-          name: "referrer",
+          name: "spender",
           type: "address",
         },
         {
@@ -429,372 +213,7 @@ export const BIDIFY = {
           type: "uint256",
         },
       ],
-      name: "bid",
-      outputs: [],
-      stateMutability: "payable",
-      type: "function",
-    },
-    {
-      inputs: [
-        {
-          internalType: "uint64",
-          name: "id",
-          type: "uint64",
-        },
-      ],
-      name: "finish",
-      outputs: [],
-      stateMutability: "nonpayable",
-      type: "function",
-    },
-    {
-      inputs: [
-        {
-          internalType: "uint256",
-          name: "id",
-          type: "uint256",
-        },
-      ],
-      name: "getListing",
-      outputs: [
-        {
-          components: [
-            {
-              internalType: "address",
-              name: "creator",
-              type: "address",
-            },
-            {
-              internalType: "address",
-              name: "currency",
-              type: "address",
-            },
-            {
-              internalType: "address",
-              name: "platform",
-              type: "address",
-            },
-            {
-              internalType: "uint256",
-              name: "token",
-              type: "uint256",
-            },
-            {
-              internalType: "uint256",
-              name: "price",
-              type: "uint256",
-            },
-            {
-              internalType: "uint256",
-              name: "endingPrice",
-              type: "uint256",
-            },
-            {
-              internalType: "address",
-              name: "referrer",
-              type: "address",
-            },
-            {
-              internalType: "address",
-              name: "lister",
-              type: "address",
-            },
-            {
-              internalType: "address",
-              name: "highBidder",
-              type: "address",
-            },
-            {
-              internalType: "uint256",
-              name: "endTime",
-              type: "uint256",
-            },
-            {
-              internalType: "bool",
-              name: "paidOut",
-              type: "bool",
-            },
-            {
-              internalType: "bool",
-              name: "isERC721",
-              type: "bool",
-            },
-          ],
-          internalType: "struct Bidify.Listing",
-          name: "",
-          type: "tuple",
-        },
-      ],
-      stateMutability: "view",
-      type: "function",
-    },
-    {
-      inputs: [
-        {
-          internalType: "uint64",
-          name: "id",
-          type: "uint64",
-        },
-      ],
-      name: "getNextBid",
-      outputs: [
-        {
-          internalType: "uint256",
-          name: "",
-          type: "uint256",
-        },
-      ],
-      stateMutability: "view",
-      type: "function",
-    },
-    {
-      inputs: [
-        {
-          internalType: "address",
-          name: "currency",
-          type: "address",
-        },
-      ],
-      name: "getPriceUnit",
-      outputs: [
-        {
-          internalType: "uint256",
-          name: "",
-          type: "uint256",
-        },
-      ],
-      stateMutability: "view",
-      type: "function",
-    },
-    {
-      inputs: [
-        {
-          internalType: "address",
-          name: "currency",
-          type: "address",
-        },
-        {
-          internalType: "address",
-          name: "platform",
-          type: "address",
-        },
-        {
-          internalType: "uint256",
-          name: "token",
-          type: "uint256",
-        },
-        {
-          internalType: "uint256",
-          name: "price",
-          type: "uint256",
-        },
-        {
-          internalType: "uint256",
-          name: "endingPrice",
-          type: "uint256",
-        },
-        {
-          internalType: "uint8",
-          name: "timeInDays",
-          type: "uint8",
-        },
-        {
-          internalType: "bool",
-          name: "isERC721",
-          type: "bool",
-        },
-        {
-          internalType: "address",
-          name: "lister",
-          type: "address",
-        },
-      ],
-      name: "list",
-      outputs: [
-        {
-          internalType: "uint256",
-          name: "",
-          type: "uint256",
-        },
-      ],
-      stateMutability: "nonpayable",
-      type: "function",
-    },
-    {
-      inputs: [
-        {
-          internalType: "address",
-          name: "",
-          type: "address",
-        },
-        {
-          internalType: "address",
-          name: "",
-          type: "address",
-        },
-        {
-          internalType: "uint256[]",
-          name: "",
-          type: "uint256[]",
-        },
-        {
-          internalType: "uint256[]",
-          name: "",
-          type: "uint256[]",
-        },
-        {
-          internalType: "bytes",
-          name: "",
-          type: "bytes",
-        },
-      ],
-      name: "onERC1155BatchReceived",
-      outputs: [
-        {
-          internalType: "bytes4",
-          name: "",
-          type: "bytes4",
-        },
-      ],
-      stateMutability: "nonpayable",
-      type: "function",
-    },
-    {
-      inputs: [
-        {
-          internalType: "address",
-          name: "operator",
-          type: "address",
-        },
-        {
-          internalType: "address",
-          name: "",
-          type: "address",
-        },
-        {
-          internalType: "uint256",
-          name: "tokenId",
-          type: "uint256",
-        },
-        {
-          internalType: "bytes",
-          name: "",
-          type: "bytes",
-        },
-      ],
-      name: "onERC1155Received",
-      outputs: [
-        {
-          internalType: "bytes4",
-          name: "",
-          type: "bytes4",
-        },
-      ],
-      stateMutability: "nonpayable",
-      type: "function",
-    },
-    {
-      inputs: [
-        {
-          internalType: "address",
-          name: "",
-          type: "address",
-        },
-        {
-          internalType: "address",
-          name: "",
-          type: "address",
-        },
-        {
-          internalType: "uint256",
-          name: "",
-          type: "uint256",
-        },
-        {
-          internalType: "uint256",
-          name: "",
-          type: "uint256",
-        },
-        {
-          internalType: "bytes",
-          name: "",
-          type: "bytes",
-        },
-      ],
-      name: "onERC1155Received",
-      outputs: [
-        {
-          internalType: "bytes4",
-          name: "",
-          type: "bytes4",
-        },
-      ],
-      stateMutability: "nonpayable",
-      type: "function",
-    },
-    {
-      inputs: [
-        {
-          internalType: "address",
-          name: "operator",
-          type: "address",
-        },
-        {
-          internalType: "address",
-          name: "",
-          type: "address",
-        },
-        {
-          internalType: "uint256",
-          name: "tokenId",
-          type: "uint256",
-        },
-        {
-          internalType: "bytes",
-          name: "",
-          type: "bytes",
-        },
-      ],
-      name: "onERC721Received",
-      outputs: [
-        {
-          internalType: "bytes4",
-          name: "",
-          type: "bytes4",
-        },
-      ],
-      stateMutability: "nonpayable",
-      type: "function",
-    },
-    {
-      inputs: [],
-      name: "owner",
-      outputs: [
-        {
-          internalType: "address",
-          name: "",
-          type: "address",
-        },
-      ],
-      stateMutability: "view",
-      type: "function",
-    },
-    {
-      inputs: [],
-      name: "renounceOwnership",
-      outputs: [],
-      stateMutability: "nonpayable",
-      type: "function",
-    },
-    {
-      inputs: [
-        {
-          internalType: "bytes4",
-          name: "interfaceId",
-          type: "bytes4",
-        },
-      ],
-      name: "supportsInterface",
+      name: "approve",
       outputs: [
         {
           internalType: "bool",
@@ -802,112 +221,84 @@ export const BIDIFY = {
           type: "bool",
         },
       ],
-      stateMutability: "view",
-      type: "function",
-    },
-    {
-      inputs: [
-        {
-          internalType: "address",
-          name: "newOwner",
-          type: "address",
-        },
-      ],
-      name: "transferOwnership",
-      outputs: [],
       stateMutability: "nonpayable",
       type: "function",
     },
     {
-      stateMutability: "payable",
-      type: "receive",
-    },
-  ],
-};
-export const ERC1155 = {
-  abi: [
-    {
       inputs: [
         {
-          internalType: "string",
-          name: "uri_",
-          type: "string",
+          internalType: "address",
+          name: "spender",
+          type: "address",
+        },
+        {
+          internalType: "uint256",
+          name: "subtractedValue",
+          type: "uint256",
         },
       ],
-      stateMutability: "nonpayable",
-      type: "constructor",
-    },
-    {
-      anonymous: false,
-      inputs: [
+      name: "decreaseAllowance",
+      outputs: [
         {
-          indexed: true,
-          internalType: "address",
-          name: "account",
-          type: "address",
-        },
-        {
-          indexed: true,
-          internalType: "address",
-          name: "operator",
-          type: "address",
-        },
-        {
-          indexed: false,
           internalType: "bool",
-          name: "approved",
+          name: "",
           type: "bool",
         },
       ],
-      name: "ApprovalForAll",
-      type: "event",
+      stateMutability: "nonpayable",
+      type: "function",
     },
     {
-      anonymous: false,
       inputs: [
         {
-          indexed: true,
           internalType: "address",
-          name: "operator",
+          name: "spender",
           type: "address",
         },
         {
-          indexed: true,
-          internalType: "address",
-          name: "from",
-          type: "address",
-        },
-        {
-          indexed: true,
-          internalType: "address",
-          name: "to",
-          type: "address",
-        },
-        {
-          indexed: false,
-          internalType: "uint256[]",
-          name: "ids",
-          type: "uint256[]",
-        },
-        {
-          indexed: false,
-          internalType: "uint256[]",
-          name: "values",
-          type: "uint256[]",
+          internalType: "uint256",
+          name: "addedValue",
+          type: "uint256",
         },
       ],
-      name: "TransferBatch",
-      type: "event",
+      name: "increaseAllowance",
+      outputs: [
+        {
+          internalType: "bool",
+          name: "",
+          type: "bool",
+        },
+      ],
+      stateMutability: "nonpayable",
+      type: "function",
+    },
+    {
+      inputs: [
+        {
+          internalType: "address",
+          name: "recipient",
+          type: "address",
+        },
+        {
+          internalType: "uint256",
+          name: "amount",
+          type: "uint256",
+        },
+      ],
+      name: "transfer",
+      outputs: [
+        {
+          internalType: "bool",
+          name: "",
+          type: "bool",
+        },
+      ],
+      stateMutability: "nonpayable",
+      type: "function",
     },
     {
       anonymous: false,
       inputs: [
-        {
-          indexed: true,
-          internalType: "address",
-          name: "operator",
-          type: "address",
-        },
         {
           indexed: true,
           internalType: "address",
@@ -923,37 +314,65 @@ export const ERC1155 = {
         {
           indexed: false,
           internalType: "uint256",
-          name: "id",
-          type: "uint256",
-        },
-        {
-          indexed: false,
-          internalType: "uint256",
           name: "value",
           type: "uint256",
         },
       ],
-      name: "TransferSingle",
+      name: "Transfer",
       type: "event",
     },
     {
-      anonymous: false,
       inputs: [
         {
-          indexed: false,
-          internalType: "string",
-          name: "value",
-          type: "string",
+          internalType: "address",
+          name: "sender",
+          type: "address",
         },
         {
-          indexed: true,
+          internalType: "address",
+          name: "recipient",
+          type: "address",
+        },
+        {
           internalType: "uint256",
-          name: "id",
+          name: "amount",
           type: "uint256",
         },
       ],
-      name: "URI",
-      type: "event",
+      name: "transferFrom",
+      outputs: [
+        {
+          internalType: "bool",
+          name: "",
+          type: "bool",
+        },
+      ],
+      stateMutability: "nonpayable",
+      type: "function",
+    },
+    {
+      inputs: [
+        {
+          internalType: "address",
+          name: "owner",
+          type: "address",
+        },
+        {
+          internalType: "address",
+          name: "spender",
+          type: "address",
+        },
+      ],
+      name: "allowance",
+      outputs: [
+        {
+          internalType: "uint256",
+          name: "",
+          type: "uint256",
+        },
+      ],
+      stateMutability: "view",
+      type: "function",
     },
     {
       inputs: [
@@ -961,11 +380,6 @@ export const ERC1155 = {
           internalType: "address",
           name: "account",
           type: "address",
-        },
-        {
-          internalType: "uint256",
-          name: "id",
-          type: "uint256",
         },
       ],
       name: "balanceOf",
@@ -980,165 +394,21 @@ export const ERC1155 = {
       type: "function",
     },
     {
-      inputs: [
-        {
-          internalType: "address[]",
-          name: "accounts",
-          type: "address[]",
-        },
-        {
-          internalType: "uint256[]",
-          name: "ids",
-          type: "uint256[]",
-        },
-      ],
-      name: "balanceOfBatch",
+      inputs: [],
+      name: "decimals",
       outputs: [
         {
-          internalType: "uint256[]",
+          internalType: "uint8",
           name: "",
-          type: "uint256[]",
+          type: "uint8",
         },
       ],
       stateMutability: "view",
       type: "function",
     },
     {
-      inputs: [
-        {
-          internalType: "address",
-          name: "account",
-          type: "address",
-        },
-        {
-          internalType: "address",
-          name: "operator",
-          type: "address",
-        },
-      ],
-      name: "isApprovedForAll",
-      outputs: [
-        {
-          internalType: "bool",
-          name: "",
-          type: "bool",
-        },
-      ],
-      stateMutability: "view",
-      type: "function",
-    },
-    {
-      inputs: [
-        {
-          internalType: "address",
-          name: "from",
-          type: "address",
-        },
-        {
-          internalType: "address",
-          name: "to",
-          type: "address",
-        },
-        {
-          internalType: "uint256[]",
-          name: "ids",
-          type: "uint256[]",
-        },
-        {
-          internalType: "uint256[]",
-          name: "amounts",
-          type: "uint256[]",
-        },
-        {
-          internalType: "bytes",
-          name: "data",
-          type: "bytes",
-        },
-      ],
-      name: "safeBatchTransferFrom",
-      outputs: [],
-      stateMutability: "nonpayable",
-      type: "function",
-    },
-    {
-      inputs: [
-        {
-          internalType: "address",
-          name: "from",
-          type: "address",
-        },
-        {
-          internalType: "address",
-          name: "to",
-          type: "address",
-        },
-        {
-          internalType: "uint256",
-          name: "id",
-          type: "uint256",
-        },
-        {
-          internalType: "uint256",
-          name: "amount",
-          type: "uint256",
-        },
-        {
-          internalType: "bytes",
-          name: "data",
-          type: "bytes",
-        },
-      ],
-      name: "safeTransferFrom",
-      outputs: [],
-      stateMutability: "nonpayable",
-      type: "function",
-    },
-    {
-      inputs: [
-        {
-          internalType: "address",
-          name: "operator",
-          type: "address",
-        },
-        {
-          internalType: "bool",
-          name: "approved",
-          type: "bool",
-        },
-      ],
-      name: "setApprovalForAll",
-      outputs: [],
-      stateMutability: "nonpayable",
-      type: "function",
-    },
-    {
-      inputs: [
-        {
-          internalType: "bytes4",
-          name: "interfaceId",
-          type: "bytes4",
-        },
-      ],
-      name: "supportsInterface",
-      outputs: [
-        {
-          internalType: "bool",
-          name: "",
-          type: "bool",
-        },
-      ],
-      stateMutability: "view",
-      type: "function",
-    },
-    {
-      inputs: [
-        {
-          internalType: "uint256",
-          name: "",
-          type: "uint256",
-        },
-      ],
-      name: "uri",
+      inputs: [],
+      name: "name",
       outputs: [
         {
           internalType: "string",
@@ -1149,8 +419,37 @@ export const ERC1155 = {
       stateMutability: "view",
       type: "function",
     },
+    {
+      inputs: [],
+      name: "symbol",
+      outputs: [
+        {
+          internalType: "string",
+          name: "",
+          type: "string",
+        },
+      ],
+      stateMutability: "view",
+      type: "function",
+    },
+    {
+      inputs: [],
+      name: "totalSupply",
+      outputs: [
+        {
+          internalType: "uint256",
+          name: "",
+          type: "uint256",
+        },
+      ],
+      stateMutability: "view",
+      type: "function",
+    },
   ],
 };
+
+
+// ERC721 ABI — from original Robbie config
 export const ERC721 = {
   address: "0xA6642FaAEaB5142CBB3636BA00319Bc46306eb3E",
   abi: [
@@ -1604,31 +903,15 @@ export const ERC721 = {
   ],
 };
 
-export const BIT = {
-  //WETH
-  address: {
-    [NetworkId.EGEM]: "0xE5fca20e55811D461800A853f444FBC6f5B72BEa",
-  },
+// ERC1155 ABI — from original Robbie config
+export const ERC1155 = {
   abi: [
     {
       inputs: [
         {
-          internalType: "uint256",
-          name: "amount",
-          type: "uint256",
-        },
-      ],
-      name: "_mint",
-      outputs: [],
-      stateMutability: "nonpayable",
-      type: "function",
-    },
-    {
-      inputs: [
-        {
-          internalType: "uint8",
-          name: "decimals_",
-          type: "uint8",
+          internalType: "string",
+          name: "uri_",
+          type: "string",
         },
       ],
       stateMutability: "nonpayable",
@@ -1640,124 +923,71 @@ export const BIT = {
         {
           indexed: true,
           internalType: "address",
-          name: "owner",
+          name: "account",
           type: "address",
         },
         {
           indexed: true,
           internalType: "address",
-          name: "spender",
+          name: "operator",
           type: "address",
         },
         {
           indexed: false,
-          internalType: "uint256",
-          name: "value",
-          type: "uint256",
+          internalType: "bool",
+          name: "approved",
+          type: "bool",
         },
       ],
-      name: "Approval",
+      name: "ApprovalForAll",
       type: "event",
-    },
-    {
-      inputs: [
-        {
-          internalType: "address",
-          name: "spender",
-          type: "address",
-        },
-        {
-          internalType: "uint256",
-          name: "amount",
-          type: "uint256",
-        },
-      ],
-      name: "approve",
-      outputs: [
-        {
-          internalType: "bool",
-          name: "",
-          type: "bool",
-        },
-      ],
-      stateMutability: "nonpayable",
-      type: "function",
-    },
-    {
-      inputs: [
-        {
-          internalType: "address",
-          name: "spender",
-          type: "address",
-        },
-        {
-          internalType: "uint256",
-          name: "subtractedValue",
-          type: "uint256",
-        },
-      ],
-      name: "decreaseAllowance",
-      outputs: [
-        {
-          internalType: "bool",
-          name: "",
-          type: "bool",
-        },
-      ],
-      stateMutability: "nonpayable",
-      type: "function",
-    },
-    {
-      inputs: [
-        {
-          internalType: "address",
-          name: "spender",
-          type: "address",
-        },
-        {
-          internalType: "uint256",
-          name: "addedValue",
-          type: "uint256",
-        },
-      ],
-      name: "increaseAllowance",
-      outputs: [
-        {
-          internalType: "bool",
-          name: "",
-          type: "bool",
-        },
-      ],
-      stateMutability: "nonpayable",
-      type: "function",
-    },
-    {
-      inputs: [
-        {
-          internalType: "address",
-          name: "recipient",
-          type: "address",
-        },
-        {
-          internalType: "uint256",
-          name: "amount",
-          type: "uint256",
-        },
-      ],
-      name: "transfer",
-      outputs: [
-        {
-          internalType: "bool",
-          name: "",
-          type: "bool",
-        },
-      ],
-      stateMutability: "nonpayable",
-      type: "function",
     },
     {
       anonymous: false,
       inputs: [
+        {
+          indexed: true,
+          internalType: "address",
+          name: "operator",
+          type: "address",
+        },
+        {
+          indexed: true,
+          internalType: "address",
+          name: "from",
+          type: "address",
+        },
+        {
+          indexed: true,
+          internalType: "address",
+          name: "to",
+          type: "address",
+        },
+        {
+          indexed: false,
+          internalType: "uint256[]",
+          name: "ids",
+          type: "uint256[]",
+        },
+        {
+          indexed: false,
+          internalType: "uint256[]",
+          name: "values",
+          type: "uint256[]",
+        },
+      ],
+      name: "TransferBatch",
+      type: "event",
+    },
+    {
+      anonymous: false,
+      inputs: [
+        {
+          indexed: true,
+          internalType: "address",
+          name: "operator",
+          type: "address",
+        },
         {
           indexed: true,
           internalType: "address",
@@ -1773,65 +1003,37 @@ export const BIT = {
         {
           indexed: false,
           internalType: "uint256",
+          name: "id",
+          type: "uint256",
+        },
+        {
+          indexed: false,
+          internalType: "uint256",
           name: "value",
           type: "uint256",
         },
       ],
-      name: "Transfer",
+      name: "TransferSingle",
       type: "event",
     },
     {
+      anonymous: false,
       inputs: [
         {
-          internalType: "address",
-          name: "sender",
-          type: "address",
+          indexed: false,
+          internalType: "string",
+          name: "value",
+          type: "string",
         },
         {
-          internalType: "address",
-          name: "recipient",
-          type: "address",
-        },
-        {
+          indexed: true,
           internalType: "uint256",
-          name: "amount",
+          name: "id",
           type: "uint256",
         },
       ],
-      name: "transferFrom",
-      outputs: [
-        {
-          internalType: "bool",
-          name: "",
-          type: "bool",
-        },
-      ],
-      stateMutability: "nonpayable",
-      type: "function",
-    },
-    {
-      inputs: [
-        {
-          internalType: "address",
-          name: "owner",
-          type: "address",
-        },
-        {
-          internalType: "address",
-          name: "spender",
-          type: "address",
-        },
-      ],
-      name: "allowance",
-      outputs: [
-        {
-          internalType: "uint256",
-          name: "",
-          type: "uint256",
-        },
-      ],
-      stateMutability: "view",
-      type: "function",
+      name: "URI",
+      type: "event",
     },
     {
       inputs: [
@@ -1839,6 +1041,11 @@ export const BIT = {
           internalType: "address",
           name: "account",
           type: "address",
+        },
+        {
+          internalType: "uint256",
+          name: "id",
+          type: "uint256",
         },
       ],
       name: "balanceOf",
@@ -1853,52 +1060,170 @@ export const BIT = {
       type: "function",
     },
     {
-      inputs: [],
-      name: "decimals",
+      inputs: [
+        {
+          internalType: "address[]",
+          name: "accounts",
+          type: "address[]",
+        },
+        {
+          internalType: "uint256[]",
+          name: "ids",
+          type: "uint256[]",
+        },
+      ],
+      name: "balanceOfBatch",
       outputs: [
         {
-          internalType: "uint8",
+          internalType: "uint256[]",
           name: "",
-          type: "uint8",
+          type: "uint256[]",
         },
       ],
       stateMutability: "view",
       type: "function",
     },
     {
-      inputs: [],
-      name: "name",
+      inputs: [
+        {
+          internalType: "address",
+          name: "account",
+          type: "address",
+        },
+        {
+          internalType: "address",
+          name: "operator",
+          type: "address",
+        },
+      ],
+      name: "isApprovedForAll",
       outputs: [
         {
-          internalType: "string",
+          internalType: "bool",
           name: "",
-          type: "string",
+          type: "bool",
         },
       ],
       stateMutability: "view",
       type: "function",
     },
     {
-      inputs: [],
-      name: "symbol",
+      inputs: [
+        {
+          internalType: "address",
+          name: "from",
+          type: "address",
+        },
+        {
+          internalType: "address",
+          name: "to",
+          type: "address",
+        },
+        {
+          internalType: "uint256[]",
+          name: "ids",
+          type: "uint256[]",
+        },
+        {
+          internalType: "uint256[]",
+          name: "amounts",
+          type: "uint256[]",
+        },
+        {
+          internalType: "bytes",
+          name: "data",
+          type: "bytes",
+        },
+      ],
+      name: "safeBatchTransferFrom",
+      outputs: [],
+      stateMutability: "nonpayable",
+      type: "function",
+    },
+    {
+      inputs: [
+        {
+          internalType: "address",
+          name: "from",
+          type: "address",
+        },
+        {
+          internalType: "address",
+          name: "to",
+          type: "address",
+        },
+        {
+          internalType: "uint256",
+          name: "id",
+          type: "uint256",
+        },
+        {
+          internalType: "uint256",
+          name: "amount",
+          type: "uint256",
+        },
+        {
+          internalType: "bytes",
+          name: "data",
+          type: "bytes",
+        },
+      ],
+      name: "safeTransferFrom",
+      outputs: [],
+      stateMutability: "nonpayable",
+      type: "function",
+    },
+    {
+      inputs: [
+        {
+          internalType: "address",
+          name: "operator",
+          type: "address",
+        },
+        {
+          internalType: "bool",
+          name: "approved",
+          type: "bool",
+        },
+      ],
+      name: "setApprovalForAll",
+      outputs: [],
+      stateMutability: "nonpayable",
+      type: "function",
+    },
+    {
+      inputs: [
+        {
+          internalType: "bytes4",
+          name: "interfaceId",
+          type: "bytes4",
+        },
+      ],
+      name: "supportsInterface",
       outputs: [
         {
-          internalType: "string",
+          internalType: "bool",
           name: "",
-          type: "string",
+          type: "bool",
         },
       ],
       stateMutability: "view",
       type: "function",
     },
     {
-      inputs: [],
-      name: "totalSupply",
-      outputs: [
+      inputs: [
         {
           internalType: "uint256",
           name: "",
           type: "uint256",
+        },
+      ],
+      name: "uri",
+      outputs: [
+        {
+          internalType: "string",
+          name: "",
+          type: "string",
         },
       ],
       stateMutability: "view",
