@@ -9,25 +9,25 @@ export const config = { maxDuration: 60 };
 export const CHAINS = {
   1: {
     name: "ethereum", symbol: "ETH",
-    rpcs: ["https://eth.drpc.org", "https://eth.llamarpc.com", "https://rpc.flashbots.net"],
+    rpcs: ["https://eth.llamarpc.com", "https://rpc.ankr.com/eth", "https://eth.drpc.org"],
     addr: "0xf8fE2A29F141eA2E3C12d925d33333A68bF2F0d8",
     deployBlock: 25840475,
   },
   56: {
     name: "bnb", symbol: "BNB",
-    rpcs: ["https://bsc.meowrpc.com", "https://bsc.blockpi.network/v1/rpc/public", "https://bsc.drpc.org", "https://bsc-dataseed.bnbchain.org"],
+    rpcs: ["https://bsc-dataseed.bnbchain.org", "https://bsc-dataseed1.defibit.io", "https://bsc.meowrpc.com"],
     addr: "0xf8fE2A29F141eA2E3C12d925d33333A68bF2F0d8",
     deployBlock: 118223374,
   },
   42161: {
     name: "arbitrum", symbol: "ETH",
-    rpcs: ["https://arbitrum.drpc.org", "https://arb1.arbitrum.io/rpc", "https://arbitrum.meowrpc.com"],
+    rpcs: ["https://arb1.arbitrum.io/rpc", "https://arbitrum.drpc.org", "https://arbitrum.meowrpc.com"],
     addr: "0xf8fE2A29F141eA2E3C12d925d33333A68bF2F0d8",
     deployBlock: 498633878,
   },
   8453: {
     name: "base", symbol: "ETH",
-    rpcs: ["https://base.drpc.org", "https://mainnet.base.org", "https://base.meowrpc.com"],
+    rpcs: ["https://mainnet.base.org", "https://base.drpc.org", "https://base.meowrpc.com"],
     addr: "0xf8fE2A29F141eA2E3C12d925d33333A68bF2F0d8",
     deployBlock: 50486026,
   },
@@ -57,7 +57,7 @@ const SEL_URI_1155 = "0x0e89341c"; // uri(uint256)
 // errors rotate to the next. One full pass retry after a cool-down.
 async function rpcOnce(url, method, params) {
   const ctl = new AbortController();
-  const timer = setTimeout(() => ctl.abort(), 7000);
+  const timer = setTimeout(() => ctl.abort(), 3500);
   try {
     const res = await fetch(url, {
       method: "POST",
