@@ -1,5 +1,4 @@
-// GET /api/rpc-debug — tries every configured RPC from the function runtime
-// and reports per-endpoint latency/error. Diagnostic only.
+// GET /api/rpc-debug — per-RPC latency/errors from the function runtime. Diagnostic only.
 export const config = { maxDuration: 30 };
 
 import { CHAINS } from "../_lib/indexer.js";
@@ -25,6 +24,8 @@ async function timedFetch(url) {
 }
 
 export default async function handler(req, res) {
+  res.statusCode = 200;
+  res.setHeader("Content-Type", "application/json");
   const out = {};
   await Promise.all(
     Object.entries(CHAINS).map(async ([cid, c]) => {
@@ -34,9 +35,5 @@ export default async function handler(req, res) {
       }
     })
   );
-  return {
-    statusCode: 200,
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(out, null, 1),
-  };
+  res.end(JSON.stringify(out, null, 1));
 }

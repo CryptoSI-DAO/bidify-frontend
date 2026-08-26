@@ -1,31 +1,23 @@
-// GET /api/collection?chainId=&owner=       → owner's active listings (chain-derived)
+// GET /api/collection?chainId=&owner=       → owner's active listings
 // GET /api/collection/[platform]/[id]       → single NFT metadata
 // legacy PUT/POST admincollection → no-op
+import { getAuctionsForChain, fetchNftMetadata, CHAINS } from "../../_lib/indexer.js";
 
 export const config = { maxDuration: 60 };
 
-import { getAuctionsForChain, fetchNftMetadata, CHAINS } from "../../_lib/indexer.js";
-
-const CORS = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type",
-};
-
-const json = (data, status = 200) => ({
-  statusCode: status,
-  headers: { "Content-Type": "application/json", ...CORS },
-  body: data === null ? "null" : JSON.stringify(data),
-});
-
 export default async function handler(req, res) {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
   const method = (req.method || "GET").toUpperCase();
-  if (method === "OPTIONS") return { statusCode: 204, headers: CORS };
+  if (method === "OPTIONS") {
+    res.statusCode = 204;
+    return res.end();
+  }
 
   const url = new URL(req.url, "https://bidify.local");
   const q = url.searchParams;
   const segs = url.pathname.replace(/\/+$/, "").split("/").filter(Boolean);
-  // ["api","collection"] | ["api","collection",platform,id]
   const platform = segs.length > 2 ? segs[2] : null;
   const tokenId = segs.length > 3 ? segs[3] : null;
 
@@ -33,35 +25,53 @@ export default async function handler(req, res) {
     if (!platform && method === "GET") {
       const chainId = Number(q.get("chainId") || 8453);
       const owner = q.get("owner");
-      if (!CHAINS[chainId]) return json({ error: "unsupported chain" }, 400);
-      if (!owner) return json([]);
+      if (!CHAINS[chainId]) {
+        res.statusCode = 400;
+        return res.end(JSON.stringify({ error: "unsupported chain" }));
+      }
+      if (!owner) {
+        res.statusCode = 200;
+        return res.end("[]");
+      }
       const all = await getAuctionsForChain(chainId);
-      return json(all.filter((a) => String(a.owner).toLowerCase() === owner.toLowerCase()));
+      const mine = all.filter((a) => String(a.owner).toLowerCase() === owner.toLowerCase());
+      res.statusCode = 200;
+      return res.end(JSON.stringify(mine));
     }
 
     if (platform && tokenId && method === "GET") {
       const chainId = Number(q.get("chainId") || 8453);
-      if (!CHAINS[chainId]) return json({ error: "unsupported chain" }, 400);
+      if (!CHAINS[chainId]) {
+        res.statusCode = 400;
+        return res.end(JSON.stringify({ error: "unsupported chain" }));
+      }
       const meta = await fetchNftMetadata(chainId, platform, tokenId, true).catch(() => null);
-      return json({
-        id: tokenId,
-        platform,
-        network: chainId,
-        name: (meta && meta.name) || `#${tokenId}`,
-        description: (meta && meta.description) || "",
-        image: (meta && meta.image) || null,
-        animation_url: (meta && meta.animation_url) || null,
-        owner: q.get("owner") || null,
-        isERC721: true,
-        price: null,
-        endingPrice: null,
-      });
+      res.statusCode = 200;
+      return res.end(
+        JSON.stringify({
+          id: tokenId,
+          platform,
+          network: chainId,
+          name: (meta && meta.name) || `#${tokenId}`,
+          description: (meta && meta.description) || "",
+          image: (meta && meta.image) || null,
+          animation_url: (meta && meta.animation_url) || null,
+          owner: q.get("owner") || null,
+          isERC721: true,
+          price: null,
+          endingPrice: null,
+        })
+      );
     }
 
-    // legacy writes (admincollection) → no-op
-    if (method === "PUT" || method === "POST") return json({ ok: true }, method === "POST" ? 201 : 200);
-    return json({ error: "not found" }, 404);
+    if (method === "PUT" || method === "POST") {
+      res.statusCode = method === "POST" ? 201 : 200;
+      return res.end(JSON.stringify({ ok: true }));
+    }
+    res.statusCode = 404;
+    return res.end(JSON.stringify({ error: "not found" }));
   } catch (e) {
-    return json({ error: String((e && e.message) || e) }, 500);
+    res.statusCode = 500;
+    return res.end(JSON.stringify({ error: String((e && e.message) || e) }));
   }
 }
