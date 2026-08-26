@@ -15,7 +15,7 @@ export const CHAINS = {
   },
   56: {
     name: "bnb", symbol: "BNB",
-    rpcs: ["https://bsc-dataseed.bnbchain.org", "https://bsc-dataseed1.defibit.io", "https://bsc.meowrpc.com"],
+    rpcs: ["https://bsc-dataseed.bnbchain.org", "https://bsc.meowrpc.com", "https://bsc.drpc.org", "https://bsc-dataseed1.defibit.io", "https://bsc-dataseed2.defibit.io"],
     addr: "0xf8fE2A29F141eA2E3C12d925d33333A68bF2F0d8",
     deployBlock: 118223374,
   },
@@ -77,12 +77,15 @@ async function rpcOnce(url, method, params) {
 async function rpc(chainId, method, params) {
   const c = CHAINS[chainId];
   let lastErr;
-  for (let pass = 0; pass < 2; pass++) {
+  for (let pass = 0; pass < 3; pass++) {
     for (const url of c.rpcs) {
       try {
         return await rpcOnce(url, method, params);
       } catch (e) {
         lastErr = new Error(`${c.name} ${method}: ${e.message}`);
+        if (/429/.test(lastErr.message)) {
+          await new Promise((r) => setTimeout(r, 600 * (pass + 1))); // backoff on rate-limit
+        }
       }
     }
   }
