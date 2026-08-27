@@ -23,7 +23,7 @@ import { NetworkData, getSymbol } from "../utils/config";
 
 const Header = ({ title, description }) => {
   //INITIALIZING HOOKS
-  const { account, chainId } = useWeb3React();
+  const { chainId } = useWeb3React();
   const { userState, userDispatch } = useContext(UserContext);
 
   const searchRef = useRef();

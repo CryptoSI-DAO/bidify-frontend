@@ -20,7 +20,7 @@ import { getSymbol, NetworkData } from "../utils/config";
 
 const Navbar = () => {
   //INITIALIZING HOOKS
-  const { chainId, account } = useWeb3React();
+  const { chainId } = useWeb3React();
   const { userDispatch } = useContext(UserContext);
   const renderLogo = (
     <div className="logo">
