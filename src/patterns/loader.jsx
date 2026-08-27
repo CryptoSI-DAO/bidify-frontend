@@ -6,7 +6,7 @@ const Loader = () => {
   const { account, chainId } = useWeb3React();
   return (
     <div className="loader">
-      <img src={account ? NetworkData[chainId].loader : NetworkData[4].loader} alt="loader" style={{ width: "8em" }} />
+      <img src={account ? NetworkData[chainId].loader : NetworkData[1].loader} alt="loader" style={{ width: "8em" }} />
     </div>
   );
 };

@@ -51,7 +51,7 @@ const Header = ({ title, description }) => {
     >
       <Link to="/" className="logo">
         <img
-          src={NetworkData[account ? chainId : 763373].logo}
+          src={(NetworkData[chainId] || NetworkData[763373] || NetworkData[1]).logo}
           alt="logo"
           width={48}
         />
