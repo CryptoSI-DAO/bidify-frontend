@@ -25,6 +25,11 @@ import { Web3Provider } from "@ethersproject/providers";
 // }
 
 function getLibrary(provider) {
+  // @web3-react/core v6 calls getLibrary with `null` on initial mount before
+  // any wallet connects. Web3Provider's constructor throws "missing provider"
+  // for null input, which kills the entire React render tree → blank page.
+  // Return null until a real provider arrives; the context tolerates it.
+  if (!provider) return null;
   const library = new Web3Provider(provider);
   library.pollingInterval = 12000;
   return library;
