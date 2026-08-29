@@ -22,7 +22,9 @@ Fork of the original Robbie-FE (CRA/React 17), modernised:
   packages dropped, OpenSSL legacy provider baked into `npm run build`.
 - **Image gateway hook**: set `REACT_APP_IMAGE_WORKER` (and/or `IMAGE_WORKER`
   server-side) to route NFT images through a Cloudflare worker
-  (`{worker}/img?url=…`). Unset = direct IPFS/Arweave/HTTP.
+  (`{worker}/img?url=…`). Unset = direct IPFS/Arweave/HTTP. See
+  [`docs/IMAGE_WORKER.md`](docs/IMAGE_WORKER.md) for full setup, hosted-worker
+  usage, and self-hosting instructions.
 
 ## Develop
 
